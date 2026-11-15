@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroBase Commander | NASA Space Apps</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'void-black': '#0a0a0f',
+                        'space-gray': '#16161e',
+                        'retro-cream': '#f4f0e6',
+                        'pixel-yellow': '#FFD27A',
+                        'pixel-purple': '#B9A6FF',
+                        'alert-red': '#ff5e5e',
+                        'energy-cyan': '#4deeea',
+                        'ui-border': '#2d2d3d'
+                    },
+                    fontFamily: {
+                        pixel: ['"Press Start 2P"', 'cursive'],
+                        retro: ['"VT323"', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "url('data:image/svg+xml,%3Csvg width=\"32\" height=\"32\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M0 0h32v32H0z\" fill=\"none\"/%3E%3Cpath d=\"M0 31.5h32M31.5 0v32\" stroke=\"rgba(185,166,255,0.05)\" stroke-width=\"1\"/%3E%3C/svg%3E')",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0a0a0f;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #B9A6FF; border: 2px solid #0a0a0f; }
+
+        /* Caixas estilo Retro Game */
+        .retro-box {
+            background-color: #16161e;
+            border: 4px solid #B9A6FF;
+            box-shadow: 8px 8px 0px 0px #FFD27A;
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .retro-box-light {
+            background-color: #ffffff;
+            border: 4px solid #0a0a0f;
+            box-shadow: 8px 8px 0px 0px #B9A6FF;
+            color: #0a0a0f;
+            padding: 1.5rem;
+            position: relative;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .retro-box-light:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 12px 12px 0px 0px #B9A6FF;
+        }
+
+        /* Botões Estilo Pixel Art */
+        .btn-pixel {
+            font-family: 'Press Start 2P', cursive;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.5rem;
+            background-color: #FFD27A;
+            color: #0a0a0f;
+            border: 4px solid #0a0a0f;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.2), 4px 4px 0px 0px #B9A6FF;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .btn-pixel:active {
+            transform: translate(4px, 4px);
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.2), 0px 0px 0px 0px #B9A6FF;
+        }
+
+        .btn-pixel-purple {
+            background-color: #B9A6FF;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.2), 4px 4px 0px 0px #FFD27A;
+        }
+
+        /* Efeito de Monitor CRT para Jogo e Screenshots */
+        .monitor-frame {
+            border: 8px solid #2d2d3d;
+            border-radius: 8px;
+            box-shadow: 0 0 0 4px #0a0a0f, 8px 8px 0px 0px #B9A6FF;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 1320px; /* 1280px do jogo + espaço da borda */
+            aspect-ratio: 16 / 9;
+        }
+
+        .monitor-frame-small {
+            border: 6px solid #1a1a24;
+            border-radius: 4px;
+            box-shadow: 0 0 0 2px #0a0a0f, 6px 6px 0px 2px #FFD27A;
+            background-color: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanlines {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.15));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        /* Efeito de borda serrilhada (pixelada) para transição de seções */
+        .pixel-divider-bottom {
+            position: absolute;
+            bottom: -16px;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M0,0 L8,16 L16,0 Z" fill="%23f4f0e6"/></svg>');
+            background-size: 32px 16px;
+            background-repeat: repeat-x;
+            z-index: 10;
+        }
+        
+        .pixel-divider-top {
+            position: absolute;
+            top: -16px;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M0,16 L8,0 L16,16 Z" fill="%23f4f0e6"/></svg>');
+            background-size: 32px 16px;
+            background-repeat: repeat-x;
+            z-index: 10;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Animação para elementos flutuantes (Mockups) */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body class="font-retro text-xl antialiased">
+
+    <!-- Navegação Superior -->
+    <nav class="fixed w-full top-0 z-50 p-4 flex justify-between items-center bg-void-black/95 border-b-4 border-ui-border">
+        <div class="flex items-center gap-3 ml-2 md:ml-4">
+            <div class="w-10 h-10 bg-pixel-yellow border-4 border-white flex items-center justify-center font-pixel text-void-black text-sm">
+                A/B
+            </div>
+            <span class="font-pixel text-xs md:text-sm text-white leading-tight">
+                Stellar<br><span class="text-pixel-purple text-[8px] md:text-[10px]">Pixel</span>
+            </span>
+        </div>
+        <div class="hidden md:flex gap-8 font-pixel text-xs">
+            <a href="#gallery" class="text-gray-400 hover:text-pixel-yellow transition-colors">Info</a>
+            <a href="#tutorial" class="text-gray-400 hover:text-pixel-purple transition-colors">Tutorial</a>
+            <a href="#modules" class="text-gray-400 hover:text-pixel-yellow transition-colors">Database</a>
+        </div>
+        <div class="mr-2 md:mr-4">
+            <a href="#game-section" class="font-pixel text-[10px] md:text-xs text-void-black bg-pixel-yellow px-4 py-2 border-2 border-white hover:bg-white transition-all shadow-[2px_2px_0_0_#B9A6FF]">PLAY NOW</a>
+        </div>
+    </nav>
+
+   <!-- SEÇÃO PRINCIPAL: O Jogo -->
+    <main id="game-section" class="relative min-h-[90vh] pt-28 pb-16 bg-void-black bg-grid-pattern flex flex-col items-center justify-center px-4 md:px-8">
+        
+        <div class="w-full max-w-6xl flex justify-between items-end mb-4 font-pixel text-[10px] text-gray-500">
+            <div class="flex gap-4">
+                <span class="text-energy-cyan">SYS: ONLINE</span>
+                <span>VER: 1.0.0</span>
+            </div>
+            <span class="text-pixel-purple animate-pulse">● REC</span>
+        </div>
+
+        <!-- Área do Jogo com o Monitor (Com flex e justify-center perfeitos) -->
+        <div id="game-container-wrapper" class="w-full max-w-6xl aspect-video monitor-frame group relative flex items-center justify-center">
+            
+            <!-- Tela de Espera Centralizada -->
+            <div id="game-standby" class="absolute inset-0 bg-space-gray flex items-center justify-center z-10 w-full h-full">
+                <button onclick="startGame()" class="btn-pixel text-xl md:text-2xl px-12 py-6 hover:scale-105 transition-transform">
+                    ▶ PLAY
+                </button>
+            </div>
+
+            <!-- Iframe do Jogo Unity -->
+            <div id="game-active" class="hidden absolute inset-0 bg-black z-20 w-full h-full overflow-hidden">
+                <iframe id="unity-frame" src="" class="w-full h-full border-0 block overflow-hidden" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <!-- Botão de Tela Cheia Centralizado Abaixo do Monitor -->
+        <div class="w-full max-w-6xl flex justify-center mt-6">
+            <button onclick="toggleFullscreen()" class="btn-pixel bg-pixel-yellow hover:bg-white text-void-black font-pixel text-xs px-8 py-3 flex items-center gap-2 shadow-[4px_4px_0_0_#B9A6FF] transition-all">
+                ⛶ FULLSCREEN MODE
+            </button>
+        </div>
+    </main>
+
+    <!-- SECÃO: GALERIA / SCREENSHOTS (Novo!) -->
+    <section id="gallery" class="py-24 bg-space-gray border-y-8 border-ui-border relative z-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-20">
+                <h2 class="font-pixel text-2xl md:text-3xl text-pixel-yellow drop-shadow-[2px_2px_0_#000]">REGISTROS DA MISSÃO</h2>
+                <p class="font-retro text-2xl text-gray-400 mt-4">Vislumbres da interface de controle colonial.</p>
+            </div>
+
+            <!-- Grid de Screenshots -->
+            <div class="flex flex-col gap-20">
+                
+                <!-- Feature 1: Imagem na Esquerda, Texto na Direita -->
+                <div class="flex flex-col md:flex-row items-center gap-10">
+                    <!-- Falso Screenshot 1 -->
+                    <div class="w-full md:w-1/2 aspect-video monitor-frame-small animate-float">
+                        <div class="scanlines"></div>
+                        
+                        <!-- Coloque sua imagem real AQUI -->
+                        <img src="imagens/backgroundNasa.png" alt="Visão da Base no Jogo" class="w-full h-full object-cover">
+
+                    </div>
+                    <!-- Texto 1 -->
+                    <div class="w-full md:w-1/2">
+                        <h3 class="font-pixel text-xl text-white mb-4 border-l-4 border-pixel-purple pl-4">Visão da Superfície</h3>
+                        <p class="font-retro text-2xl text-gray-300 leading-relaxed mb-6">
+                            Posicione estrategicamente suas estruturas no terreno alienígena. A poeira cósmica e a topografia afetam diretamente a eficiência dos seus painéis solares e extratores.
+                        </p>
+                        <a href="#" class="font-pixel text-xs text-pixel-yellow hover:text-white underline decoration-2 underline-offset-4">Ver detalhes estruturais -></a>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Texto na Esquerda, Imagem na Direita -->
+                <div class="flex flex-col md:flex-row-reverse items-center gap-10">
+                    <!-- Falso Screenshot 2 -->
+                    <div class="w-full md:w-1/2 aspect-video monitor-frame-small animate-float" style="animation-delay: 2s;">
+                        <div class="scanlines"></div>
+                        
+                        <!-- Coloque sua imagem real AQUI -->
+                        <img src="imagens/backgroundNasa.png" alt="Interface de Gerenciamento" class="w-full h-full object-cover">
+
+                    </div>
+                    <!-- Texto 2 -->
+                    <div class="w-full md:w-1/2 text-left md:text-right">
+                        <h3 class="font-pixel text-xl text-white mb-4 border-l-4 md:border-l-0 md:border-r-4 border-pixel-yellow pl-4 md:pl-0 md:pr-4">Gerenciamento Crítico</h3>
+                        <p class="font-retro text-2xl text-gray-300 leading-relaxed mb-6">
+                            Não se trata apenas de construir. Monitore os níveis de suporte à vida através do console central. Eventos aleatórios testarão sua capacidade de priorizar recursos.
+                        </p>
+                        <a href="#" class="font-pixel text-xs text-pixel-purple hover:text-white underline decoration-2 underline-offset-4"><- Manual de Sobrevivência</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECÃO: TUTORIAL (Modo Claro) -->
+    <section id="tutorial" class="py-24 bg-retro-cream text-void-black relative">
+        <!-- Divisor Pixelado Superior -->
+        <div class="pixel-divider-top"></div>
+
+        <div class="max-w-5xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-14">
+                <h2 class="font-pixel text-2xl md:text-4xl text-void-black drop-shadow-[2px_2px_0_#B9A6FF] uppercase">
+                    Commander's Manual
+                </h2>
+                <p class="font-retro text-2xl text-gray-700 mt-4 max-w-2xl mx-auto font-bold">
+                    Click on each system module below to learn the core survival mechanics.
+                </p>
+            </div>
+
+            <!-- Lista de Acordeões (Selects Expansíveis) -->
+            <div class="flex flex-col gap-6">
+
+                <!-- 1. KEYBOARD SHORTCUTS & CONTROLS (Aberto por padrão) -->
+                <details open class="group retro-box-light !p-0 overflow-hidden">
+                    <summary class="cursor-pointer list-none p-6 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <span class="font-pixel text-xs bg-pixel-yellow text-void-black px-3 py-1.5 border-2 border-void-black">01</span>
+                            <h3 class="font-pixel text-sm md:text-base text-void-black">CONTROLS & SHORTCUTS</h3>
+                        </div>
+                        <span class="font-pixel text-sm text-void-black transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+                    
+                    <div class="p-6 pt-2 border-t-4 border-void-black bg-retro-cream/40">
+                        <p class="font-retro text-2xl text-gray-800 mb-6">
+                            Master the command interface to navigate the lunar surface and manage your colony efficiently.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Tecla B -->
+                            <div class="flex items-center gap-4 bg-white p-3 border-2 border-void-black shadow-[4px_4px_0_0_#0a0a0f]">
+                                <kbd class="font-pixel text-sm bg-pixel-purple text-void-black px-3 py-2 border-2 border-void-black shrink-0">B</kbd>
+                                <div>
+                                    <div class="font-pixel text-[11px] text-void-black">CONNECTION MODE</div>
+                                    <p class="font-retro text-xl text-gray-700 leading-tight">Manage power cables and water pipe networks.</p>
+                                </div>
+                            </div>
+
+                            <!-- Tecla C -->
+                            <div class="flex items-center gap-4 bg-white p-3 border-2 border-void-black shadow-[4px_4px_0_0_#0a0a0f]">
+                                <kbd class="font-pixel text-sm bg-pixel-yellow text-void-black px-3 py-2 border-2 border-void-black shrink-0">C</kbd>
+                                <div>
+                                    <div class="font-pixel text-[11px] text-void-black">BUILD & MOVE MODE</div>
+                                    <p class="font-retro text-xl text-gray-700 leading-tight">Place new structures or reposition existing modules.</p>
+                                </div>
+                            </div>
+
+                            <!-- Botão Direito -->
+                            <div class="flex items-center gap-4 bg-white p-3 border-2 border-void-black shadow-[4px_4px_0_0_#0a0a0f]">
+                                <kbd class="font-pixel text-xs bg-void-black text-white px-3 py-2 border-2 border-void-black shrink-0">RMB</kbd>
+                                <div>
+                                    <div class="font-pixel text-[11px] text-void-black">PAN CAMERA</div>
+                                    <p class="font-retro text-xl text-gray-700 leading-tight">Hold Right-Click and drag to move across the map.</p>
+                                </div>
+                            </div>
+
+                            <!-- Espaço reservado para futuras teclas -->
+                            <div class="flex items-center gap-4 bg-gray-100 p-3 border-2 border-dashed border-gray-500">
+                                <kbd class="font-pixel text-xs bg-gray-300 text-gray-600 px-3 py-2 border-2 border-gray-500 shrink-0">[...]</kbd>
+                                <div>
+                                    <div class="font-pixel text-[11px] text-gray-600">MORE SHORTCUTS SOON</div>
+                                    <p class="font-retro text-xl text-gray-600 leading-tight">Additional hotkeys will be unlocked in future updates.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- 2. RESOURCES & AUTOMATION -->
+                <details class="group retro-box-light !p-0 overflow-hidden">
+                    <summary class="cursor-pointer list-none p-6 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <span class="font-pixel text-xs bg-pixel-purple text-void-black px-3 py-1.5 border-2 border-void-black">02</span>
+                            <h3 class="font-pixel text-sm md:text-base text-void-black">RESOURCES & GRIDS</h3>
+                        </div>
+                        <span class="font-pixel text-sm text-void-black transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+
+                    <div class="p-6 pt-4 border-t-4 border-void-black bg-retro-cream/40 space-y-6">
+                        <div class="grid md:grid-cols-2 gap-6 items-start">
+                            <div>
+                                <h4 class="font-pixel text-xs text-void-black mb-2 border-l-4 border-pixel-yellow pl-3">MANUAL COLLECTION</h4>
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Use <strong>Solar Panels</strong> and <strong>Water Generators</strong> to produce Energy and Water. Simply click on them whenever the ready indicator appears to collect resources.
+                                </p>
+                            </div>
+                            <div>
+                                <h4 class="font-pixel text-xs text-void-black mb-2 border-l-4 border-pixel-purple pl-3">STORAGE & AUTOMATION</h4>
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Base storage is limited. Build <strong>Power Storage</strong> or <strong>Water Tanks</strong> to expand capacity and automate collection by linking them directly to your generators.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Destaque de Como Conectar -->
+                        <div class="bg-white p-4 border-2 border-void-black">
+                            <p class="font-retro text-2xl text-void-black">
+                                <span class="font-pixel text-[11px] bg-pixel-yellow px-2 py-0.5 border border-void-black mr-2">HOW TO LINK:</span>
+                                Press <kbd class="font-pixel text-xs bg-gray-200 px-1.5 py-0.5 border border-void-black">C</kbd> (or select the network tool on the HUD), click on a Solar Panel or Water Generator, and drag the mouse to connect a line straight to your storage unit.
+                            </p>
+                        </div>
+
+                        <!-- 2 GIFs lado a lado -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div class="aspect-video monitor-frame-small">
+                                    <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                                        <source src="imagens/powerTutorialVideo.mkv" type="video/mp4">
+                                    </video>
+                                </div>
+                                <p class="font-pixel text-[10px] text-center text-gray-700 mt-3">FIG 1.1 — DRAGGING POWER & WATER LINES</p>
+                            </div>
+
+                           <div>
+                                <div class="aspect-video monitor-frame-small">
+                                    <video autoplay loop muted playsinline class="w-full h-full object-cover">
+                                        <source src="imagens/waterTutorialVideo.mkv" type="video/mp4">
+                                    </video>
+                                </div>
+                                <p class="font-pixel text-[10px] text-center text-gray-700 mt-3">FIG 1.2 — LINKING TO STORAGE TANKS</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- 3. LUNAR HABITAT & RADIATION -->
+                <details class="group retro-box-light !p-0 overflow-hidden">
+                    <summary class="cursor-pointer list-none p-6 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <span class="font-pixel text-xs bg-pixel-yellow text-void-black px-3 py-1.5 border-2 border-void-black">03</span>
+                            <h3 class="font-pixel text-sm md:text-base text-void-black">HABITAT & RADIATION</h3>
+                        </div>
+                        <span class="font-pixel text-sm text-void-black transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+
+                    <div class="p-6 pt-4 border-t-4 border-void-black bg-retro-cream/40">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="w-full md:w-3/5 space-y-4">
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Your central <strong>Habitat</strong> consumes <strong>Food, Energy, Water, and Oxygen</strong> daily based on your crew size. Keep supplies balanced—if life support runs dry, the mission fails.
+                                </p>
+                                
+                                <div class="bg-white p-4 border-l-4 border-alert-red border-y-2 border-r-2 border-void-black">
+                                    <h4 class="font-pixel text-xs text-alert-red mb-1">⚠ COSMIC RADIATION & UPGRADES</h4>
+                                    <p class="font-retro text-xl text-gray-800 leading-snug">
+                                        The Habitat shields astronauts from solar radiation, though never 100%. Accumulate required <strong>Energy and Water</strong> to upgrade your Habitat level—this boosts radiation shielding and unlocks buffs, but be careful: <strong>higher shielding increases daily maintenance costs!</strong>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Imagem do Habitat -->
+                            <div class="w-full md:w-2/5">
+                                <div class="aspect-video monitor-frame-small">
+                                    <div class="scanlines"></div>
+                                    <!-- Substitua pela imagem do Habitat / Upgrade -->
+                                    <img src="imagens/tutorial_habitat.png" alt="Lunar Habitat Shielding and Upgrades" class="w-full h-full object-cover" style="image-rendering: pixelated;">
+                                </div>
+                                <p class="font-pixel text-[10px] text-center text-gray-700 mt-3">FIG 2.0 — HABITAT SHIELDING & UPGRADE PANEL</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- 4. RANDOM EVENTS & COMMS -->
+                <details class="group retro-box-light !p-0 overflow-hidden">
+                    <summary class="cursor-pointer list-none p-6 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <span class="font-pixel text-xs bg-pixel-purple text-void-black px-3 py-1.5 border-2 border-void-black">04</span>
+                            <h3 class="font-pixel text-sm md:text-base text-void-black">COMMS & RANDOM EVENTS</h3>
+                        </div>
+                        <span class="font-pixel text-sm text-void-black transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+
+                    <div class="p-6 pt-4 border-t-4 border-void-black bg-retro-cream/40">
+                        <div class="flex flex-col md:flex-row-reverse gap-8 items-center">
+                            <div class="w-full md:w-3/5 space-y-4">
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Keep an eye on the <strong>Communications Center</strong> inside your Habitat. When an alert pops up, click it to inspect incoming cosmic events before they hit.
+                                </p>
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    You will have a short preparation window to stockpile resources or reinforce systems. Choose wisely—<strong>every decision carries real consequences</strong> for your crew's safety and survival.
+                                </p>
+                            </div>
+
+                            <!-- Imagem dos Eventos -->
+                            <div class="w-full md:w-2/5">
+                                <div class="aspect-video monitor-frame-small">
+                                    <div class="scanlines"></div>
+                                    <!-- Substitua pela imagem do alerta/evento -->
+                                    <img src="imagens/tutorial_events.png" alt="Habitat Communications Alert" class="w-full h-full object-cover" style="image-rendering: pixelated;">
+                                </div>
+                                <p class="font-pixel text-[10px] text-center text-gray-700 mt-3">FIG 3.0 — INCOMING TRANSMISSION ALERT</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <!-- 5. MODULES & LUNAR CREDITS -->
+                <details class="group retro-box-light !p-0 overflow-hidden">
+                    <summary class="cursor-pointer list-none p-6 flex items-center justify-between bg-white hover:bg-gray-50 transition-colors select-none">
+                        <div class="flex items-center gap-4">
+                            <span class="font-pixel text-xs bg-pixel-yellow text-void-black px-3 py-1.5 border-2 border-void-black">05</span>
+                            <h3 class="font-pixel text-sm md:text-base text-void-black">MODULES & LUNAR CREDITS</h3>
+                        </div>
+                        <span class="font-pixel text-sm text-void-black transition-transform duration-200 group-open:rotate-180">▼</span>
+                    </summary>
+
+                    <div class="p-6 pt-4 border-t-4 border-void-black bg-retro-cream/40">
+                        <div class="flex flex-col md:flex-row gap-8 items-center">
+                            <div class="w-full md:w-3/5 space-y-4">
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Each base module serves a specialized role and requires specific resources to operate. Expand your colony by purchasing new modules with <strong>Lunar Credits</strong>.
+                                </p>
+                                <p class="font-retro text-2xl text-gray-800 leading-snug">
+                                    Earn Lunar Credits by completing <strong>mini-missions</strong> and resolving events. Balance your expansion carefully: <strong>more structures demand higher resource output!</strong>
+                                </p>
+
+                                <div class="pt-2">
+                                    <a href="#modules" class="btn-pixel text-xs">
+                                        VIEW FULL MODULE DATABASE ↓
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Imagem dos Módulos Funcionando -->
+                            <div class="w-full md:w-2/5">
+                                <div class="aspect-video monitor-frame-small">
+                                    <div class="scanlines"></div>
+                                    <!-- Substitua pela imagem dos módulos funcionando na base -->
+                                    <img src="imagens/tutorial_modules.png" alt="Active Base Modules" class="w-full h-full object-cover" style="image-rendering: pixelated;">
+                                </div>
+                                <p class="font-pixel text-[10px] text-center text-gray-700 mt-3">FIG 4.0 — OPERATIONAL BASE NETWORK</p>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+            </div>
+        </div>
+
+        <!-- Divisor Pixelado Inferior -->
+        <div class="pixel-divider-bottom"></div>
+    </section>
+
+    <section id="modules" class="py-32 bg-void-black relative z-20">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            
+            <!-- Cabeçalho da Seção -->
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12 border-b-4 border-ui-border pb-4 px-2">
+                <div>
+                    <h2 class="font-pixel text-2xl md:text-3xl text-white">DATABASE: <span class="text-pixel-purple">MODULES</span></h2>
+                    <p class="font-retro text-2xl text-gray-400 mt-2">Base Structures Inventory</p>
+                </div>
+
+                <div class="font-pixel text-[10px] text-gray-500 mt-4 md:mt-0 flex gap-4">
+                    <span class="animate-pulse text-energy-cyan">System Online</span>
+                    <span>ITENS: 7</span>
+                </div>
+            </div>
+
+            <!-- Área do Carrossel com Setas -->
+            <div class="relative flex items-center group">
+                <!-- Seta Esquerda (Desktop) -->
+                <button onclick="scrollModules(-1)" class="hidden md:flex absolute -left-6 z-30 w-12 h-12 bg-void-black border-4 border-ui-border text-white items-center justify-center font-pixel text-xl hover:border-pixel-yellow hover:text-pixel-yellow transition-colors shadow-[4px_4px_0_0_#000]">
+                    &lt;
+                </button>
+
+                <!-- Container Rolável -->
+                <div id="modules-track" class="flex gap-6 overflow-x-auto snap-x snap-mandatory hide-scrollbar w-full pb-8 pt-4 px-2 scroll-smooth">
+                    
+                    <!-- Módulo 1 -->
+                    <div class="snap-center shrink-0 w-[85vw] md:w-[340px] retro-box flex shadow-none flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #FFD27A;">
+                        <!-- Área da Imagem/Ícone -->
+                        <div class="w-full h-40 bg-black relative mb-4 overflow-hidden ">
+                                <img
+                                    src="imagens/habit.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        
+                        <h3 class="font-pixel text-sm text-pixel-yellow mb-2 border-b-2 border-dashed border-gray-700 pb-2">Lunar Habitat</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Protects astronauts from radiation and provides a safe place to live.
+                        </p>
+                        
+                        <!-- Painel de Status -->
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">RADIATION PROTECTION</span>
+                                <span class="text-green-400 font-bold">X %</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 2 -->
+                    <div class="snap-center shrink-0 w-[85vw] md:w-[340px] retro-box shadow-none flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #B9A6FF;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/solarPanel.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-pixel-purple mb-2 border-b-2 border-dashed border-gray-700 pb-2">Solar Panel</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Generates energy from sunlight to power the base.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">PRODUCTION</span>
+                                <span class="text-green-400 font-bold">X Kw/min</span>
+                            </div>
+                            
+                        </div>
+                    </div>
+
+                    <!-- Módulo 3 -->
+                    <div class="snap-center shrink-0 w-[85vw] md:w-[340px] shadow-none retro-box flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #ff5e5e;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/waterGererator.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-alert-red mb-2 border-b-2 border-dashed border-gray-700 pb-2">Water Generator</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Produces water to supply the lunar base.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-energy-cyan shadow-inner">
+                                <span class="text-gray-500">PRODUCTION</span>
+                                <span class="text-energy-cyan font-bold">X L/min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 4 -->
+                    <div class="snap-center shrink-0 w-[85vw] md:w-[340px] shadow-none retro-box flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #4deeea;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/greenHouse.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-energy-cyan mb-2 border-b-2 border-dashed border-gray-700 pb-2">Greenhouse</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Grows fresh food to keep astronauts healthy.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">PRODUCTION</span>
+                                <span class="text-green-400 font-bold">+20 FOOD/min</span>
+                            </div>
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-yellow-500 shadow-inner">
+                                <span class="text-gray-500">CONSUMPTION</span>
+                                <span class="text-yellow-400 font-bold">-25 PWR/min | -20 L/min</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Módulo 5 -->
+                    <div class="shadow-none snap-center shrink-0 w-[85vw] md:w-[340px] retro-box flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #4deeea;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/oxygenGenerator.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-energy-cyan mb-2 border-b-2 border-dashed border-gray-700 pb-2">Oxygen Generator</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Uses water and energy to produce oxygen for astronauts.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                             <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">PRODUCTION</span>
+                                <span class="text-green-400 font-bold">+20 O2/min</span>
+                            </div>
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-yellow-500 shadow-inner">
+                                <span class="text-gray-500">CONSUMPTION</span>
+                                <span class="text-yellow-400 font-bold">-25 PWR/min | -20 L/min</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Módulo 6 -->
+                    <div class="shadow-none snap-center shrink-0 w-[85vw] md:w-[340px] retro-box flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #4deeea;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/power.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-energy-cyan mb-2 border-b-2 border-dashed border-gray-700 pb-2">Power Storage</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Increases the base's energy storage capacity.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                            <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">STORAGE CAPACITY</span>
+                                <span class="text-green-400 font-bold">50Kw</span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Módulo 7 -->
+                    <div class="shadow-none snap-center shrink-0 w-[85vw] md:w-[340px] retro-box flex flex-col hover:-translate-y-2 transition-transform duration-300" style="border-color: #4deeea;">
+                        <div class="w-full h-40 bg-black monitor-frame-small flex items-center justify-center relative mb-4">
+                            <div class="w-full h-40 bg-black relative mb-4 overflow-hidden">
+                                <img
+                                    src="imagens/waterTankl.png"
+                                    alt="Bio-Cúpula"
+                                    class="w-full h-full object-cover"
+                                    style="image-rendering: pixelated;"
+                                />
+
+                                <div class="scanlines absolute inset-0 pointer-events-none"></div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="font-pixel text-sm text-energy-cyan mb-2 border-b-2 border-dashed border-gray-700 pb-2">Water Tank</h3>
+                        <p class="font-retro text-xl text-gray-400 mb-6 leading-tight flex-grow">
+                            Increases the base's water storage capacity.
+                        </p>
+                        
+                        <div class="font-retro text-lg flex flex-col gap-2 mt-auto">
+                             <div class="flex justify-between bg-black px-3 py-1 border-l-4 border-green-500 shadow-inner">
+                                <span class="text-gray-500">STORAGE CAPACITY</span>
+                                <span class="text-green-400 font-bold">2L</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Seta Direita (Desktop) -->
+                <button onclick="scrollModules(1)" class="hidden md:flex absolute -right-6 z-30 w-12 h-12 bg-void-black border-4 border-ui-border text-white items-center justify-center font-pixel text-xl hover:border-pixel-yellow hover:text-pixel-yellow transition-colors shadow-[4px_4px_0_0_#000]">
+                    &gt;
+                </button>
+            </div>
+            
+            <!-- Dica para mobile -->
+            <div class="text-center mt-6 md:hidden">
+                <span class="font-pixel text-[10px] text-gray-500 animate-pulse">&lt;&lt; DESLIZE PARA VER MAIS &gt;&gt;</span>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- SECÃO: DESENVOLVIMENTO (Making Of) -->
+    <section id="development" class="py-24 bg-space-gray border-t-8 border-ui-border relative z-20">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="font-pixel text-2xl md:text-3xl text-energy-cyan drop-shadow-[2px_2px_0_#000]">DIÁRIO DE DESENVOLVIMENTO</h2>
+                <p class="font-retro text-2xl text-gray-400 mt-4 max-w-3xl mx-auto">
+                    Por trás dos bastidores da colonização. Veja o processo de criação utilizando 
+                    <span class="text-pixel-yellow">Unity</span> e <span class="text-pixel-purple">Aseprite</span>.
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-12">
+                
+                <!-- Timelapse de Pixel Art (Aseprite) -->
+                <div class="retro-box bg-void-black">
+                    <h3 class="font-pixel text-sm md:text-lg text-pixel-yellow mb-6 border-b-4 border-ui-border pb-4">
+                        >> TIMELAPSE: ARTE EM ASEPRITE
+                    </h3>
+                    <div class="w-full aspect-video monitor-frame bg-black relative">
+                        <div class="scanlines pointer-events-none"></div>
+                        <!-- Substitua o 'src' pelo caminho do seu vídeo real -->
+                        <video controls class="w-full h-full object-cover relative z-10" poster="imagens/poster-video.png">
+                            <source src="imagens/speed2.mp4" type="video/mp4">
+                            Seu navegador não suporta a tag de vídeo.
+                        </video>
+                    </div>
+                </div>
+
+                <!-- Screenshots do Desenvolvimento (Unity) -->
+                <div class="retro-box-light" style="border-color: #B9A6FF; box-shadow: 8px 8px 0px 0px #0a0a0f;">
+                    <h3 class="font-pixel text-sm md:text-lg text-void-black mb-6 border-b-4 border-void-black pb-4">
+                        >> WORKSPACE: UNITY ENGINE
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <!-- Imagem Unity 1 -->
+                        <div class="w-full aspect-video monitor-frame-small animate-float">
+                            <div class="scanlines"></div>
+                            <!-- Substitua o 'src' pela sua imagem de dentro da Unity -->
+                            <img src="imagens/unity_dev1.png" alt="Cena de desenvolvimento na Unity" class="w-full h-full object-cover relative z-10">
+                        </div>
+                        
+                        <!-- Imagem Unity 2 -->
+                        <div class="w-full aspect-video monitor-frame-small animate-float" style="animation-delay: 1.5s;">
+                            <div class="scanlines"></div>
+                            <!-- Substitua o 'src' pela sua imagem de dentro da Unity -->
+                            <img src="imagens/unity_dev2.png" alt="Scripts ou interface na Unity" class="w-full h-full object-cover relative z-10">
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-black py-12 border-t-8 border-pixel-purple text-center relative overflow-hidden">
+        <!-- Efeito visual de estrelas no footer -->
+        <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+        
+        <div class="max-w-4xl mx-auto px-6 flex flex-col items-center relative z-10">
+            <h4 class="font-pixel text-lg text-white mb-4 drop-shadow-[2px_2px_0_#B9A6FF]">Stellar Pixel</h4>
+            <p class="font-retro text-2xl text-gray-400 mb-8 max-w-xl">
+                Um simulador de trade-offs de engenharia espacial. <br>Projeto interativo para o NASA Space Apps Challenge.
+            </p>
+           <!-- <div class="flex gap-8 font-pixel text-xs mb-8">
+                <button class="btn-pixel-purple btn-pixel text-[10px] px-6 py-3">BAIXAR ASSETS</button>
+                <button class="btn-pixel text-[10px] px-6 py-3 bg-white text-black border-black shadow-[4px_4px_0_0_#FFD27A]">DOCUMENTAÇÃO</button>
+            </div> -->
+            <p class="font-retro text-gray-600 mt-4 text-xl">© 2026 Space Apps Team.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Função para simular o início do jogo e trocar a UI
+        function startGame() {
+            const standby = document.getElementById('game-standby');
+            const active = document.getElementById('game-active');
+            const frame = document.getElementById('unity-frame');
+            
+            standby.style.transition = 'all 0.3s ease-out';
+            standby.style.transform = 'scale(1.05)';
+            standby.style.opacity = '0';
+            
+            setTimeout(() => {
+                standby.classList.add('hidden');
+                active.classList.remove('hidden');
+                
+                // Carrega a build da Unity dentro do monitor
+                if (!frame.src || frame.src === window.location.href) {
+                    frame.src = 'game/index.html';
+                }
+                
+                const gameSection = document.getElementById('game-section');
+                gameSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 300);
+        }
+
+        // Função corrigida para ativar a Tela Cheia no wrapper do jogo
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('game-container-wrapper');
+            
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) { /* Safari */
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) { /* IE11 */
+                    wrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function scrollModules(direction) {
+            const track = document.getElementById('modules-track');
+            // Calcula o tamanho de um cartão + o gap (aprox 360px)
+            const scrollAmount = 360; 
+            track.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
